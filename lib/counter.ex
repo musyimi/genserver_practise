@@ -17,9 +17,14 @@ defmodule Counter do
     GenServer.call(pid, :current)
   end
 
-  
+
 
   def init(initial_count) do
+    initial_count =
+      case Cache.lookup(__MODULE__) do
+        {:ok, count} -> count
+        :error -> initial_count
+      end
      {:ok, initial_count}
   end
 
@@ -35,5 +40,9 @@ defmodule Counter do
 
   def handle_call(:current, _from, count) do
     {:reply, count, count}
+  end
+
+  def terminate(_reason, count) do
+    Cache.save(__MODULE__, count)
   end
 end
